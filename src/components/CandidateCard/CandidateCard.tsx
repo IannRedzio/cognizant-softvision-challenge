@@ -82,7 +82,7 @@ function CandidateCard({
           disabled={!onMovePrevious}
           className={`flex-1 px-3 py-2 text-sm rounded transition-colors ${
             onMovePrevious
-              ? "bg-gray-600 text-white hover:bg-gray-700"
+              ? "bg-blue-600 text-white hover:bg-blue-700"
               : "bg-gray-200 text-gray-400 cursor-not-allowed"
           }`}
         >
