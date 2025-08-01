@@ -1,19 +1,40 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Candidate } from '../types/candidate';
-import candidatesData from '../api/candidates.json';
+import { getCandidates } from '../api';
 import { loadCandidatesFromStorage, saveCandidatesToStorage, clearCandidatesFromStorage } from '../utils/localStorage';
 
-const initializeCandidates = (): Candidate[] => {
-  const savedCandidates = loadCandidatesFromStorage();
-  return savedCandidates || [...(candidatesData as Candidate[])];
-};
-
 export const useCandidates = () => {
-  const [candidates, setCandidates] = useState<Candidate[]>(() => initializeCandidates());
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    saveCandidatesToStorage(candidates);
-  }, [candidates]);
+    const initializeCandidates = async () => {
+      const savedCandidates = loadCandidatesFromStorage();
+      
+      if (savedCandidates) {
+        setCandidates(savedCandidates);
+        setIsLoading(false);
+      } else {
+        try {
+          const apiCandidates = await getCandidates();
+          setCandidates(apiCandidates);
+        } catch (error) {
+          console.error('Error al cargar candidatos:', error);
+          setCandidates([]);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    initializeCandidates();
+  }, []);
+
+  useEffect(() => {
+    if (!isLoading) {
+      saveCandidatesToStorage(candidates);
+    }
+  }, [candidates, isLoading]);
 
   const addCandidate = useCallback((candidate: Omit<Candidate, 'step'>) => {
     setCandidates(prev => {
@@ -89,13 +110,20 @@ export const useCandidates = () => {
     setCandidates(prev => prev.filter(candidate => candidate.id !== candidateId));
   }, []);
 
-  const clearStorage = useCallback(() => {
+  const clearStorage = useCallback(async () => {
     clearCandidatesFromStorage();
-    setCandidates([...(candidatesData as Candidate[])]);
+    try {
+      const apiCandidates = await getCandidates();
+      setCandidates(apiCandidates);
+    } catch (error) {
+      console.error('Error al resetear candidatos:', error);
+      setCandidates([]);
+    }
   }, []);
 
   return {
     candidates,
+    isLoading,
     addCandidate,
     moveNext,
     movePrevious,

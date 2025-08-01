@@ -14,6 +14,7 @@ const COLUMNS: { title: string; step: Candidate["step"] }[] = [
 function Board() {
   const {
     candidates,
+    isLoading,
     addCandidate,
     moveNext,
     movePrevious,
@@ -58,6 +59,18 @@ function Board() {
   };
 
 
+
+  if (isLoading) {
+    return (
+      <div className="w-full max-w-8xl mx-auto">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-white text-lg">
+            Cargando candidatos...
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-8xl mx-auto">
