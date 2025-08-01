@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Candidate } from "../../types/candidate";
-import api from "../../api";
+import { useCandidates } from "../../hooks/useCandidates";
 import Column from "../Column/Column";
 
 const COLUMNS: { title: string; step: Candidate["step"] }[] = [
@@ -12,46 +12,33 @@ const COLUMNS: { title: string; step: Candidate["step"] }[] = [
 ];
 
 function Board() {
-  const [candidates, setCandidates] = useState<Candidate[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    candidates,
+    addCandidate,
+    moveNext,
+    movePrevious,
+    updateComments
+  } = useCandidates();
 
-  useEffect(() => {
-    loadCandidates();
-  }, []);
-
-  const loadCandidates = async () => {
+  const handleMoveNext = (candidateId: string) => {
     try {
-      const data = await api.candidates.list();
-      setCandidates(data);
-    } catch (error) {
-      console.error("Error al cargar candidatos:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleMoveNext = async (candidateId: string) => {
-    try {
-      await api.candidates.moveNext(candidateId);
-      loadCandidates();
+      moveNext(candidateId);
     } catch (error) {
       console.error("Error al mover candidato:", error);
     }
   };
 
-  const handleMovePrevious = async (candidateId: string) => {
+  const handleMovePrevious = (candidateId: string) => {
     try {
-      await api.candidates.movePrevious(candidateId);
-      loadCandidates();
+      movePrevious(candidateId);
     } catch (error) {
       console.error("Error al mover candidato:", error);
     }
   };
 
-  const handleAddCandidate = async (candidate: Omit<Candidate, "step">) => {
+  const handleAddCandidate = (candidate: Omit<Candidate, "step">) => {
     try {
-      await api.candidates.add(candidate);
-      loadCandidates();
+      addCandidate(candidate);
     } catch (error) {
       console.error("Error al agregar candidato:", error);
       if (error instanceof Error) {
@@ -62,22 +49,15 @@ function Board() {
     }
   };
 
-  const handleUpdateComments = async (candidateId: string, comments: string) => {
+  const handleUpdateComments = (candidateId: string, comments: string) => {
     try {
-      await api.candidates.updateComments(candidateId, comments);
-      loadCandidates();
+      updateComments(candidateId, comments);
     } catch (error) {
       console.error("Error al actualizar comentarios:", error);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-white text-lg">Cargando candidatos...</div>
-      </div>
-    );
-  }
+
 
   return (
     <div className="w-full max-w-8xl mx-auto">
